@@ -27,7 +27,7 @@ import java.util.List;
 
 @Name("Set GUI Slots")
 @Description("Set or clear GUI slots.")
-@Examples({"create a gui with virtual chest inventory with 3 rows named \"My GUI\"",
+@Examples({"create a gui with virtual chest 3 row inventory named \"My GUI\"",
 			"\tmake next gui with dirt # Formats the next available GUI slot with dirt. Doesn't do anything when clicked on.",
 			"\tmake gui 10 with water bucket:",
 			"\t\t#code here is run when the gui slot is clicked",

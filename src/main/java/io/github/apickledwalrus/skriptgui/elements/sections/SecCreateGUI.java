@@ -26,7 +26,7 @@ import java.util.List;
 @Name("Create / Edit GUI")
 @Description("The base of creating and editing GUIs.")
 @Examples({
-		"create a gui with virtual chest inventory with 3 rows named \"My GUI\"",
+		"create a gui with virtual chest 3 row inventory named \"My GUI\"",
 		"edit gui last gui:",
 		"\tset the gui-inventory-name to \"New GUI Name!\"",
 })

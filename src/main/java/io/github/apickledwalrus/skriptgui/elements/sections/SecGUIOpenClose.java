@@ -25,7 +25,7 @@ import java.util.List;
 @Name("GUI Open/Close")
 @Description("Sections that will run when a user opens or closes the GUI. This section is optional.")
 @Examples({
-		"create a gui with virtual chest inventory with 3 rows named \"My GUI\"",
+		"create a gui with virtual chest 3 row inventory named \"My GUI\"",
 		"\trun on gui open:",
 		"\t\tsend \"You just opened this GUI!\" to player",
 		"\trun on gui close:",

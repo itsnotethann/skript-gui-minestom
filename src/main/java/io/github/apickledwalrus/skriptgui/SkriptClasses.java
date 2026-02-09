@@ -24,9 +24,8 @@ public class SkriptClasses {
 
                 @Override
                 public String toString(GUI gui, int flags) {
-                    return gui.getInventory().getInventoryType().name().toLowerCase()
+                    return gui.getInventory().getInventoryType().name().toLowerCase().replace("_", " ")
                         + " gui named " + gui.getName()
-                        + " with " + gui.getInventory().getSize() / 9 + " rows"
                         + " and shape " + gui.getRawShape();
                 }
 

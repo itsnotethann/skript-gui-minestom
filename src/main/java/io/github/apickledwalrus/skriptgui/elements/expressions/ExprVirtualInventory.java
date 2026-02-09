@@ -22,7 +22,7 @@ import static ch.njol.skript.effects.EffOpenInventory.getDefaultTitle;
 
 @Name("Virtual Inventory")
 @Description("An expression to create inventories that can be used with GUIs.")
-@Examples("create a gui with virtual chest inventory with 3 rows named \"My GUI\"")
+@Examples("create a gui with virtual chest 3 row inventory named \"My GUI\"")
 @Since("1.0.0")
 public class ExprVirtualInventory extends SimpleExpression<AbstractInventory>{
 

@@ -39,7 +39,7 @@ import org.eclipse.jdt.annotation.Nullable;
 @Name("GUI Values")
 @Description("Different utility values for a GUI. Some are available in vanilla Skript. Not all values are available for the GUI close section.")
 @Examples({
-		"create a gui with virtual chest inventory:",
+		"create a gui with virtual chest 3 row inventory:",
 		"\tmake gui 10 with water bucket:",
 		"\t\tset the gui item to lava bucket"
 })
