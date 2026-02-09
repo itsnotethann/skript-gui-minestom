@@ -14,9 +14,11 @@ import ch.njol.util.Kleenean;
 import io.github.apickledwalrus.skriptgui.SkriptGUI;
 import io.github.apickledwalrus.skriptgui.elements.expressions.ExprVirtualInventory;
 import io.github.apickledwalrus.skriptgui.gui.GUI;
+import net.minestom.server.inventory.AbstractInventory;
+import net.minestom.server.inventory.Inventory;
+import net.minestom.server.inventory.InventoryType;
+import net.minestom.server.inventory.PlayerInventory;
 import org.bukkit.event.Event;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.List;
@@ -41,7 +43,7 @@ public class SecCreateGUI extends EffectSection {
 	private boolean inception;
 
 	@SuppressWarnings("NotNullFieldNotInitialized")
-	private Expression<Inventory> inv;
+	private Expression<AbstractInventory> inv;
 	@Nullable
 	private Expression<String> shape, id;
 	private boolean removableItems;
@@ -60,7 +62,7 @@ public class SecCreateGUI extends EffectSection {
 			gui = (Expression<GUI>) exprs[0];
 		} else {
 			id = (Expression<String>) exprs[0];
-			inv = (Expression<Inventory>) exprs[1];
+			inv = (Expression<AbstractInventory>) exprs[1];
 			shape = (Expression<String>) exprs[2];
 			removableItems = parseResult.hasTag("removable");
 		}
@@ -80,20 +82,21 @@ public class SecCreateGUI extends EffectSection {
 	public TriggerItem walk(Event e) {
 		GUI gui;
 		if (this.gui == null) { // Creating a new GUI.
-			Inventory inv = this.inv.getSingle(e);
-			if (inv == null) // Don't run the section if the GUI can't be created
+			AbstractInventory inv = this.inv.getSingle(e);
+			if (inv == null || inv instanceof PlayerInventory) // Don't run the section if the GUI can't be created
 				return walk(e, false);
+			Inventory inventory = (Inventory) inv;
+			InventoryType type = inventory.getInventoryType();
 
-			InventoryType invType = inv.getType();
-			if (invType == InventoryType.CRAFTING || invType == InventoryType.PLAYER) { // We don't want to run this section as this is an invalid GUI type
-				SkriptGUI.getInstance().getLogger().warning("Unable to create an inventory of type: " + invType.name());
+			if (type == InventoryType.CRAFTING) { // We don't want to run this section as this is an invalid GUI type
+				SkriptGUI.getInstance().getLogger().warning("Unable to create an inventory of type: " + type.name());
 				return walk(e, false);
 			}
 
 			if (this.inv instanceof ExprVirtualInventory) { // Try to set the name
-				gui = new GUI(inv, removableItems, ((ExprVirtualInventory) this.inv).getName());
+				gui = new GUI(inventory, removableItems, ((ExprVirtualInventory) this.inv).getName());
 			} else {
-				gui = new GUI(inv, removableItems, null);
+				gui = new GUI(inventory, removableItems, null);
 			}
 
 			if (shape == null) {

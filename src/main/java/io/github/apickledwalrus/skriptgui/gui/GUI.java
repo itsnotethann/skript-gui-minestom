@@ -1,17 +1,22 @@
 package io.github.apickledwalrus.skriptgui.gui;
 
+import ch.njol.skript.events.wrapper.InventoryCloseWrapper;
+import ch.njol.skript.events.wrapper.InventoryOpenWrapper;
+import ch.njol.skript.events.wrapper.InventoryPreClickWrapper;
 import io.github.apickledwalrus.skriptgui.SkriptGUI;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.minestom.server.entity.Player;
+import net.minestom.server.event.inventory.InventoryCloseEvent;
+import net.minestom.server.event.inventory.InventoryOpenEvent;
+import net.minestom.server.event.inventory.InventoryPreClickEvent;
+import net.minestom.server.inventory.AbstractInventory;
+import net.minestom.server.inventory.Inventory;
+import net.minestom.server.inventory.InventoryType;
+import net.minestom.server.inventory.PlayerInventory;
+import net.minestom.server.inventory.click.Click;
+import net.minestom.server.item.ItemStack;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -20,15 +25,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 
+import static ch.njol.skript.effects.EffOpenInventory.getDefaultTitle;
+
 public class GUI {
 
 	private Inventory inventory;
-	private String name;
+	private Component name;
 
 	private final GUIEventHandler eventHandler = new GUIEventHandler() {
 		@Override
-		public void onClick(InventoryClickEvent e) {
-			if (isPaused() || isPaused((Player) e.getWhoClicked())) {
+		public void onClick(InventoryPreClickEvent e) {
+			if (isPaused() || isPaused(e.getPlayer())) {
 				e.setCancelled(true); // Just in case
 				return;
 			}
@@ -38,10 +45,10 @@ public class GUI {
 				// Only cancel if this slot can't be removed AND all items aren't removable
 				e.setCancelled(!isRemovable(slotData));
 
-				Consumer<InventoryClickEvent> runOnClick = slotData.getRunOnClick();
+				Consumer<InventoryPreClickWrapper> runOnClick = slotData.getRunOnClick();
 				if (runOnClick != null) {
-					SkriptGUI.getGUIManager().setGUI(e, GUI.this);
-					runOnClick.accept(e);
+					SkriptGUI.getGUIManager().setGUI(new InventoryPreClickWrapper(e), GUI.this);
+					runOnClick.accept(new InventoryPreClickWrapper(e));
 				}
 			} else { // If there is no slot data, cancel if this GUI doesn't have stealable items
 				e.setCancelled(!isRemovable());
@@ -49,13 +56,13 @@ public class GUI {
 		}
 
 		@Override
-		public void onDrag(InventoryDragEvent e) {
-			if (isPaused() || isPaused((Player) e.getWhoClicked())) {
+		public void onDrag(InventoryPreClickEvent e) {
+			if (isPaused() || isPaused(e.getPlayer())) {
 				e.setCancelled(true); // Just in case
 				return;
 			}
 
-			for (int slot : e.getRawSlots()) {
+			for (int slot : ((Click.Drag) e.getClick()).slots()) {
 				if (!isRemovable(convert(slot))) {
 					e.setCancelled(true);
 					break;
@@ -65,31 +72,31 @@ public class GUI {
 
 		@Override
 		public void onOpen(InventoryOpenEvent e) {
-			if (isPaused() || isPaused((Player) e.getPlayer())) {
+			if (isPaused() || isPaused(e.getPlayer())) {
 				return;
 			}
 
 			if (onOpen != null) {
-				SkriptGUI.getGUIManager().setGUI(e, GUI.this);
-				onOpen.accept(e);
+				SkriptGUI.getGUIManager().setGUI(new InventoryOpenWrapper(e), GUI.this);
+				onOpen.accept(new InventoryOpenWrapper(e));
 			}
 		}
 
 		@Override
 		public void onClose(InventoryCloseEvent e) {
-			if (isPaused() || isPaused((Player) e.getPlayer())) {
+			if (isPaused() || isPaused(e.getPlayer())) {
 				return;
 			}
 
 			if (onClose != null) {
-				SkriptGUI.getGUIManager().setGUI(e, GUI.this);
-				onClose.accept(e);
+				SkriptGUI.getGUIManager().setGUI(new InventoryCloseWrapper(e), GUI.this);
+				onClose.accept(new InventoryCloseWrapper(e));
 				if (closeCancelled) {
-					Bukkit.getScheduler().runTaskLater(SkriptGUI.getInstance(), () -> {
+					Bukkit.getScheduler().scheduleSyncDelayedTask(SkriptGUI.getInstance(), () -> {
 						// Reset behavior (it shouldn't persist)
 						setCloseCancelled(false);
 
-						Player closer = (Player) e.getPlayer();
+						Player closer = e.getPlayer();
 						pause(closer); // Avoid calling any open sections
 						closer.openInventory(inventory);
 						resume(closer);
@@ -99,11 +106,11 @@ public class GUI {
 			}
 
 			if (id == null && inventory.getViewers().size() == 1) { // Only stop tracking if it isn't a global GUI
-				Bukkit.getScheduler().runTaskLater(SkriptGUI.getInstance(), () -> SkriptGUI.getGUIManager().unregister(GUI.this), 1);
+				Bukkit.getScheduler().scheduleSyncDelayedTask(SkriptGUI.getInstance(), () -> SkriptGUI.getGUIManager().unregister(GUI.this), 1);
 			}
 
 			// To combat issues like https://github.com/APickledWalrus/skript-gui/issues/60
-			Bukkit.getScheduler().runTaskLater(SkriptGUI.getInstance(), () -> ((Player) e.getPlayer()).updateInventory(), 1);
+			Bukkit.getScheduler().scheduleSyncDelayedTask(SkriptGUI.getInstance(), () -> e.getPlayer().getInventory().update(), 1);
 		}
 	};
 
@@ -116,20 +123,20 @@ public class GUI {
 
 	// To be run when this inventory is opened.
 	@Nullable
-	private Consumer<InventoryOpenEvent> onOpen;
+	private Consumer<InventoryOpenWrapper> onOpen;
 	// To be run when this inventory is closed.
 	@Nullable
-	private Consumer<InventoryCloseEvent> onClose;
+	private Consumer<InventoryCloseWrapper> onClose;
 	// Whether the inventory close event for this event handler is cancelled.
 	private boolean closeCancelled;
 
 	@Nullable
 	private String id;
 
-	public GUI(Inventory inventory, boolean stealableItems, @Nullable String name) {
+	public GUI(Inventory inventory, boolean stealableItems, @Nullable Component name) {
 		this.inventory = inventory;
 		this.removableItems = stealableItems;
-		this.name = name != null ? name : inventory.getType().getDefaultTitle();
+		this.name = name != null ? name : getDefaultTitle(inventory.getInventoryType());
 		SkriptGUI.getGUIManager().register(this);
 	}
 
@@ -145,17 +152,17 @@ public class GUI {
 		changeInventory(size, getName());
 	}
 
-	public String getName() {
+	public Component getName() {
 		return name;
 	}
 
-	public void setName(@Nullable String name) {
+	public void setName(@Nullable Component name) {
 		changeInventory(inventory.getSize(), name);
 	}
 
 	public void clear(Object slot) {
 		Character realSlot = convert(slot);
-		setItem(realSlot, new ItemStack(Material.AIR), false, null);
+		setItem(realSlot, ItemStack.AIR, false, null);
 		slots.remove(realSlot);
 	}
 
@@ -164,9 +171,10 @@ public class GUI {
 		slots.clear();
 	}
 
-	private void changeInventory(int size, @Nullable String name) {
+	private void changeInventory(int size, @Nullable Component name) {
+		InventoryType type = inventory.getInventoryType();
 		if (name == null) {
-			name = inventory.getType().getDefaultTitle();
+			name = getDefaultTitle(type);
 		} else if (size < 9 ) { // Minimum size
 			size = 9;
 		} else if (size > 54) { // Maximum size
@@ -177,28 +185,24 @@ public class GUI {
 			return;
 		}
 
-		Inventory newInventory;
-		if (inventory.getType() == InventoryType.CHEST) {
-			newInventory = Bukkit.getServer().createInventory(null, size, name);
-		} else {
-			newInventory = Bukkit.getServer().createInventory(null, inventory.getType(), name);
-		}
+		Inventory newInventory = new Inventory(type, name);
 
 		if (size >= inventory.getSize()) {
-			newInventory.setContents(inventory.getContents());
+			newInventory.copyContents(inventory.getItemStacks());
 		} else { // The inventory is shrinking
 			for (int slot = 0; slot < size; slot++) {
-				newInventory.setItem(slot, inventory.getItem(slot));
+				newInventory.setItemStack(slot, inventory.getItemStack(slot));
 			}
 		}
 
 		eventHandler.pause(); // Don't process any events as we transfer data and players
 
-		for (HumanEntity viewer : new ArrayList<>(inventory.getViewers())) {
-			ItemStack cursor = viewer.getItemOnCursor();
-			viewer.setItemOnCursor(null);
+		for (Player viewer : new ArrayList<>(inventory.getViewers())) {
+			PlayerInventory i = viewer.getInventory();
+			ItemStack cursor = i.getCursorItem();
+			i.setCursorItem(ItemStack.AIR);
 			viewer.openInventory(newInventory);
-			viewer.setItemOnCursor(cursor);
+			i.setCursorItem(cursor);
 		}
 		SkriptGUI.getGUIManager().transferRegistration(this, newInventory);
 		inventory = newInventory;
@@ -268,7 +272,7 @@ public class GUI {
 	 * @param removable Whether this {@link ItemStack} can be removed from its slot.
 	 * @param consumer The {@link Consumer} that the slot will run when clicked. Put as null if the slot should not run anything when clicked.
 	 */
-	public void setItem(Object slot, @Nullable ItemStack item, boolean removable, @Nullable Consumer<InventoryClickEvent> consumer) {
+	public void setItem(Object slot, @Nullable ItemStack item, boolean removable, @Nullable Consumer<InventoryPreClickWrapper> consumer) {
 		if (rawShape == null) {
 			SkriptGUI.getInstance().getLogger().warning("Unable to set the item in a gui named '" + getName() + "' as it has a null shape.");
 			return;
@@ -289,11 +293,11 @@ public class GUI {
 
 		// Although we may be adding null consumers, it lets us track what slots have been set
 		slots.put(ch, new SlotData(consumer, removable));
-
+		if (item == null) item = ItemStack.AIR;
 		int i = 0;
 		for (char ch1 : rawShape.toCharArray()) {
 			if (ch == ch1 && i < inventory.getSize()) {
-				inventory.setItem(i, item);
+				inventory.setItemStack(i, item);
 			}
 			i++;
 		}
@@ -305,14 +309,13 @@ public class GUI {
 	 */
 	public ItemStack getItem(Object slot) {
 		if (rawShape == null) {
-			return new ItemStack(Material.AIR);
+			return ItemStack.AIR;
 		}
 		char ch = convert(slot);
 		if (ch == 0) {
-			return new ItemStack(Material.AIR);
+			return ItemStack.AIR;
 		}
-		ItemStack item = inventory.getItem(rawShape.indexOf(ch));
-		return item != null ? item : new ItemStack(Material.AIR);
+        return inventory.getItemStack(rawShape.indexOf(ch));
 	}
 
 	/**
@@ -388,7 +391,7 @@ public class GUI {
 		if (rawShape != null) {
 			for (int i = 0; i < inventory.getSize(); i++) {
 				if (rawShape.indexOf(newShape.charAt(i)) == -1) { // This character was NOT in the old shape
-					inventory.clear(i);
+					inventory.setItemStack(i, ItemStack.AIR);
 				}
 			}
 		}
@@ -442,7 +445,7 @@ public class GUI {
 	 * Sets the consumer to be run when this GUI is opened.
 	 * @param onOpen The consumer to be run when this GUI is opened.
 	 */
-	public void setOnOpen(Consumer<InventoryOpenEvent> onOpen) {
+	public void setOnOpen(Consumer<InventoryOpenWrapper> onOpen) {
 		this.onOpen = onOpen;
 	}
 
@@ -450,7 +453,7 @@ public class GUI {
 	 * Sets the consumer to be run when this GUI is closed.
 	 * @param onClose The consumer to be run when this GUI is closed.
 	 */
-	public void setOnClose(Consumer<InventoryCloseEvent> onClose) {
+	public void setOnClose(Consumer<InventoryCloseWrapper> onClose) {
 		this.onClose = onClose;
 	}
 
@@ -499,10 +502,10 @@ public class GUI {
 	public static final class SlotData {
 
 		@Nullable
-		private Consumer<InventoryClickEvent> runOnClick;
+		private Consumer<InventoryPreClickWrapper> runOnClick;
 		private boolean removable;
 
-		public SlotData(@Nullable Consumer<InventoryClickEvent> runOnClick, boolean removable) {
+		public SlotData(@Nullable Consumer<InventoryPreClickWrapper> runOnClick, boolean removable) {
 			this.runOnClick = runOnClick;
 			this.removable = removable;
 		}
@@ -511,7 +514,7 @@ public class GUI {
 		 * @return The consumer to run when a slot with this data is clicked.
 		 */
 		@Nullable
-		public Consumer<InventoryClickEvent> getRunOnClick() {
+		public Consumer<InventoryPreClickWrapper> getRunOnClick() {
 			return runOnClick;
 		}
 
@@ -519,7 +522,7 @@ public class GUI {
 		 * Updates the consumer to run when a slot with this data is clicked. A null value may be used to remove the consumer.
 		 * @param runOnClick The consumer to run when a slot with this data is clicked.
 		 */
-		public void setRunOnClick(@Nullable Consumer<InventoryClickEvent> runOnClick) {
+		public void setRunOnClick(@Nullable Consumer<InventoryPreClickWrapper> runOnClick) {
 			this.runOnClick = runOnClick;
 		}
 

@@ -1,6 +1,6 @@
 package io.github.apickledwalrus.skriptgui.elements.conditions;
 
-import org.bukkit.entity.Player;
+import net.minestom.server.entity.Player;
 import org.bukkit.event.Event;
 
 import ch.njol.skript.Skript;

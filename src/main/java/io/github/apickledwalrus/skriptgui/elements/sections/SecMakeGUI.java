@@ -1,12 +1,12 @@
 package io.github.apickledwalrus.skriptgui.elements.sections;
 
 import ch.njol.skript.Skript;
-import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
+import ch.njol.skript.events.wrapper.InventoryPreClickWrapper;
 import ch.njol.skript.lang.EffectSection;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SectionSkriptEvent;
@@ -14,13 +14,13 @@ import ch.njol.skript.lang.SkriptEvent;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.Trigger;
 import ch.njol.skript.lang.TriggerItem;
+import ch.njol.skript.util.Item;
 import ch.njol.skript.variables.Variables;
 import ch.njol.util.Kleenean;
 import io.github.apickledwalrus.skriptgui.SkriptGUI;
 import io.github.apickledwalrus.skriptgui.gui.GUI;
+import net.minestom.server.item.ItemStack;
 import org.bukkit.event.Event;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.ItemStack;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.List;
@@ -39,8 +39,8 @@ public class SecMakeGUI extends EffectSection {
 
 	static {
 		Skript.registerSection(SecMakeGUI.class,
-				"(make|format) [the] next gui [slot] (with|to) [removable:([re]mov[e]able|stealable)] %itemtype%",
-				"(make|format) gui [slot[s]] %strings/numbers% (with|to) [removable:([re]mov[e]able|stealable)] %itemtype%",
+				"(make|format) [the] next gui [slot] (with|to) [removable:([re]mov[e]able|stealable)] %item%",
+				"(make|format) gui [slot[s]] %strings/numbers% (with|to) [removable:([re]mov[e]able|stealable)] %item%",
 				"(un(make|format)|remove) [the] next gui [slot]",
 				"(un(make|format)|remove) gui [slot[s]] %strings/numbers%",
 				"(un(make|format)|remove) all [[of] the] gui [slots]"
@@ -53,7 +53,7 @@ public class SecMakeGUI extends EffectSection {
 	@Nullable
 	private Expression<Object> slots; // Can be number or a string
 	@Nullable
-	private Expression<ItemType> item;
+	private Expression<Item> item;
 
 	private int pattern;
 	private boolean removable;
@@ -72,7 +72,7 @@ public class SecMakeGUI extends EffectSection {
 
 		pattern = matchedPattern;
 		if (matchedPattern < 2) {
-			item = (Expression<ItemType>) exprs[matchedPattern];
+			item = (Expression<Item>) exprs[matchedPattern];
 		}
 		if (matchedPattern == 1 || matchedPattern == 3) {
 			slots = (Expression<Object>) exprs[0];
@@ -82,7 +82,7 @@ public class SecMakeGUI extends EffectSection {
 
 		if (hasSection()) {
 			assert sectionNode != null;
-			trigger = loadCode(sectionNode, "inventory click", InventoryClickEvent.class);
+			trigger = loadCode(sectionNode, "inventory click", InventoryPreClickWrapper.class);
 		}
 
 		return true;
@@ -101,30 +101,30 @@ public class SecMakeGUI extends EffectSection {
 			case 0: // Set the next slot
 			case 1: // Set the input slots
 				assert item != null;
-				ItemType itemType = item.getSingle(e);
-				if (itemType == null)
+				Item item = this.item.getSingle(e);
+				if (item == null)
 					break;
-				ItemStack item = itemType.getRandom();
+				ItemStack stack = item.getItem();
 				if (hasSection()) {
 					assert trigger != null;
 					Object variables = Variables.copyLocalVariables(e);
 					if (variables != null) {
 						for (Object slot : slots != null ? slots.getArray(e) : new Object[]{gui.nextSlot()}) {
-							gui.setItem(slot, item, removable, event -> {
+							gui.setItem(slot, stack, removable, event -> {
 								Variables.setLocalVariables(event, variables);
 								trigger.execute(event);
 							});
 						}
 					} else { // Don't paste variables if there are none to paste
 						for (Object slot : slots != null ? slots.getArray(e) : new Object[]{gui.nextSlot()}) {
-							gui.setItem(slot, item, removable, event -> {
+							gui.setItem(slot, stack, removable, event -> {
 								trigger.execute(event);
 							});
 						}
 					}
 				} else {
 					for (Object slot : slots != null ? slots.getArray(e) : new Object[]{gui.nextSlot()}) {
-						gui.setItem(slot, item, removable, null);
+						gui.setItem(slot, stack, removable, null);
 					}
 				}
 				break;

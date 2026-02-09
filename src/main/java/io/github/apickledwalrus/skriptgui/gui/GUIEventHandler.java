@@ -1,10 +1,9 @@
 package io.github.apickledwalrus.skriptgui.gui;
 
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
+import net.minestom.server.entity.Player;
+import net.minestom.server.event.inventory.InventoryCloseEvent;
+import net.minestom.server.event.inventory.InventoryOpenEvent;
+import net.minestom.server.event.inventory.InventoryPreClickEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,8 +66,8 @@ public abstract class GUIEventHandler {
 		return isPaused() || pausedFor.contains(player);
 	}
 
-	public abstract void onClick(InventoryClickEvent e);
-	public abstract void onDrag(InventoryDragEvent e);
+	public abstract void onClick(InventoryPreClickEvent e);
+	public abstract void onDrag(InventoryPreClickEvent e);
 	public abstract void onOpen(InventoryOpenEvent e);
 	public abstract void onClose(InventoryCloseEvent e);
 

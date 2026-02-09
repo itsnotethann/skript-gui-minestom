@@ -7,12 +7,18 @@ import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
+import ch.njol.skript.events.wrapper.InventoryCloseWrapper;
+import ch.njol.skript.events.wrapper.InventoryOpenWrapper;
+import ch.njol.skript.events.wrapper.InventoryPreClickWrapper;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SectionSkriptEvent;
 import ch.njol.skript.lang.SkriptEvent;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
+import ch.njol.skript.util.ClickType;
+import ch.njol.skript.util.Item;
+import ch.njol.skript.util.Slot;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import io.github.apickledwalrus.skriptgui.SkriptGUI;
@@ -20,17 +26,14 @@ import io.github.apickledwalrus.skriptgui.elements.sections.SecCreateGUI;
 import io.github.apickledwalrus.skriptgui.elements.sections.SecGUIOpenClose;
 import io.github.apickledwalrus.skriptgui.elements.sections.SecMakeGUI;
 import io.github.apickledwalrus.skriptgui.gui.GUI;
-import org.bukkit.entity.HumanEntity;
+import net.minestom.server.entity.Player;
+import net.minestom.server.event.inventory.InventoryCloseEvent;
+import net.minestom.server.event.inventory.InventoryOpenEvent;
+import net.minestom.server.event.inventory.InventoryPreClickEvent;
+import net.minestom.server.event.trait.InventoryEvent;
+import net.minestom.server.inventory.AbstractInventory;
+import net.minestom.server.inventory.click.Click;
 import org.bukkit.event.Event;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.inventory.InventoryType.SlotType;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.eclipse.jdt.annotation.Nullable;
 
 @Name("GUI Values")
@@ -46,14 +49,11 @@ public class ExprGUIValues extends SimpleExpression<Object> {
 	static {
 		Skript.registerExpression(ExprGUIValues.class, Object.class, ExpressionType.SIMPLE,
 				"[the] gui slot",
-				"[the] gui raw slot",
 				"[the] gui hotbar slot",
 				"[the] gui inventory",
-				"[the] gui inventory action",
 				"[the] gui click (type|action)",
 				"[the] gui cursor [item]",
 				"[the] gui [(clicked|current)] item",
-				"[the] gui slot type",
 				"[the] gui player",
 				"[the] gui (viewer|player)s",
 				"[the] gui slot id",
@@ -71,7 +71,7 @@ public class ExprGUIValues extends SimpleExpression<Object> {
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		SkriptEvent skriptEvent = getParser().getCurrentSkriptEvent();
-		if (!(matchedPattern == 12 && getParser().isCurrentSection(SecCreateGUI.class)) && !(skriptEvent instanceof SectionSkriptEvent && ((SectionSkriptEvent) skriptEvent).isSection(SecMakeGUI.class, SecGUIOpenClose.class))) {
+		if (!(matchedPattern == 9 && getParser().isCurrentSection(SecCreateGUI.class)) && !(skriptEvent instanceof SectionSkriptEvent && ((SectionSkriptEvent) skriptEvent).isSection(SecMakeGUI.class, SecGUIOpenClose.class))) {
 			Skript.error("You can't use '" + parseResult.expr + "' outside of a GUI make or open/close section.");
 			return false;
 		}
@@ -79,7 +79,7 @@ public class ExprGUIValues extends SimpleExpression<Object> {
 		openClose = skriptEvent instanceof SectionSkriptEvent && ((SectionSkriptEvent) skriptEvent).isSection(SecGUIOpenClose.class);
 
 		pattern = matchedPattern;
-		if (openClose && matchedPattern != 3 && matchedPattern != 9 && matchedPattern != 10 && matchedPattern != 12) {
+		if (openClose && matchedPattern != 2 && matchedPattern != 6 && matchedPattern != 7 && matchedPattern != 9) {
 			Skript.error("You can't use '" + parseResult.expr + "' in a GUI open/close section.");
 			return false;
 		}
@@ -92,56 +92,61 @@ public class ExprGUIValues extends SimpleExpression<Object> {
 
 	@Override
 	protected Object[] get(Event event) {
-		if (pattern == 12) {
+		if (pattern == 9) {
 			GUI gui = SkriptGUI.getGUIManager().getGUI(event);
 			return gui != null ? new GUI[]{gui} : new GUI[0];
 		}
 
 		if (openClose) {
-			InventoryEvent e = (InventoryEvent) event;
+			InventoryEvent e = getInventoryEvent(event);
 			switch (pattern) {
-				case 3:
-					return new Inventory[]{e.getInventory()};
-				case 9:
+				case 2:
+					return new AbstractInventory[]{e.getInventory()};
+				case 6:
 					// Ugly but oh well
-					return new HumanEntity[]{(event instanceof InventoryCloseEvent ? ((InventoryCloseEvent) e).getPlayer() : ((InventoryOpenEvent) e).getPlayer())};
-				case 10:
-					return (e.getViewers().toArray(new HumanEntity[0]));
+					return new Player[]{getEventOwner(e)};
+				case 7:
+					return e.getInventory().getViewers().toArray();
 			}
 		} else {
-			InventoryClickEvent e = (InventoryClickEvent) event;
+			InventoryPreClickEvent e = ((InventoryPreClickWrapper) event).getEvent();
+			Click click = e.getClick();
 			switch (pattern) {
 				case 0:
 					return new Number[]{e.getSlot()};
 				case 1:
-					return new Number[]{e.getRawSlot()};
+					int num = -1;
+					if (click instanceof Click.HotbarSwap(int hotbarSlot, _)) num = hotbarSlot;
+					return new Number[]{num};
 				case 2:
-					return new Number[]{e.getHotbarButton()};
+					return new AbstractInventory[]{e.getInventory()};
 				case 3:
-					Inventory clicked = e.getClickedInventory();
-					return clicked != null ? new Inventory[]{clicked} : new Inventory[0];
+					ClickType type = ClickType.getType(e.getClick());
+					return type != null ? new ClickType[]{type} : new ClickType[0];
 				case 4:
-					return new InventoryAction[]{e.getAction()};
+					return new Item[]{new Item(e.getPlayer().getInventory().getCursorItem())};
 				case 5:
-					return new ClickType[]{e.getClick()};
+					return new Slot[]{new Slot(e.getClickedItem(), e.getInventory(), e.getSlot())};
 				case 6:
-					ItemStack cursor = e.getCursor();
-					return cursor != null ? new ItemType[]{new ItemType(cursor)} : new ItemType[0];
+					return new Player[]{e.getPlayer()};
 				case 7:
-					ItemStack currentItem = e.getCurrentItem();
-					return currentItem != null ? new ItemType[]{new ItemType(currentItem)} : new ItemType[0];
+					return e.getInventory().getViewers().toArray();
 				case 8:
-					return new SlotType[]{e.getSlotType()};
-				case 9:
-					return new HumanEntity[]{e.getWhoClicked()};
-				case 10:
-					return e.getViewers().toArray(new HumanEntity[0]);
-				case 11:
 					GUI gui = SkriptGUI.getGUIManager().getGUI(event);
-					return gui != null ? new String[]{"" + gui.convert(e.getSlot())} : new GUI[0];
+					return gui != null ? new String[]{"" + gui.convert(e.getSlot())} : new String[0];
 			}
 		}
 		return new Object[0];
+	}
+
+	private InventoryEvent getInventoryEvent(Event event) {
+		if (event instanceof InventoryOpenWrapper wrapper) return wrapper.getEvent();
+		else return ((InventoryCloseWrapper) event).getEvent();
+	}
+
+	private Player getEventOwner(InventoryEvent event) {
+		if (event instanceof InventoryOpenEvent e) return e.getPlayer();
+		else return ((InventoryCloseEvent) event).getPlayer();
 	}
 
 	@Override
@@ -152,8 +157,8 @@ public class ExprGUIValues extends SimpleExpression<Object> {
 			return null;
 		}
 
-		if (mode == ChangeMode.SET && pattern == 7) {
-			return CollectionUtils.array(ItemType.class);
+		if (mode == ChangeMode.SET && pattern == 4) {
+			return CollectionUtils.array(Item.class);
 		}
 
 		return null;
@@ -161,45 +166,29 @@ public class ExprGUIValues extends SimpleExpression<Object> {
 
 	@Override
 	public void change(Event event, Object @Nullable [] delta, ChangeMode mode) {
-		if (delta == null || !(event instanceof InventoryClickEvent)) {
+		if (delta == null || !(event instanceof InventoryPreClickWrapper)) {
 			return;
 		}
-		((InventoryClickEvent) event).setCurrentItem(((ItemType) delta[0]).getRandom());
+		((InventoryPreClickWrapper) event).getEvent().getPlayer().getInventory().setCursorItem(((Item) delta[0]).getItem());
 	}
 
 	@Override
 	public boolean isSingle() {
-		return pattern != 10;
+		return pattern != 7;
 	}
 
 	@Override
 	public Class<?> getReturnType() {
-		switch (pattern) {
-			case 0:
-			case 1:
-			case 2:
-				return Number.class;
-			case 3:
-				return Inventory.class;
-			case 4:
-				return InventoryAction.class;
-			case 5:
-				return ClickType.class;
-			case 6:
-			case 7:
-				return ItemType.class;
-			case 8:
-				return SlotType.class;
-			case 9:
-			case 10:
-				return HumanEntity.class;
-			case 11:
-				return String.class;
-			case 12:
-				return GUI.class;
-			default:
-				return Object.class;
-		}
+        return switch (pattern) {
+            case 0, 1 -> Number.class;
+            case 3 -> ClickType.class;
+            case 4 -> Item.class;
+            case 5 -> Slot.class;
+            case 6, 7 -> Player.class;
+            case 8 -> String.class;
+            case 9 -> GUI.class;
+            default -> Object.class;
+        };
 	}
 
 	@Override

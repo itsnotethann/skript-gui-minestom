@@ -6,6 +6,8 @@ import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
+import ch.njol.skript.events.wrapper.InventoryCloseWrapper;
+import ch.njol.skript.events.wrapper.InventoryOpenWrapper;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.Section;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
@@ -16,8 +18,6 @@ import ch.njol.util.Kleenean;
 import io.github.apickledwalrus.skriptgui.SkriptGUI;
 import io.github.apickledwalrus.skriptgui.gui.GUI;
 import org.bukkit.event.Event;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.List;
@@ -57,9 +57,9 @@ public class SecGUIOpenClose extends Section {
 		close = parseResult.mark == 1;
 
 		if (close) {
-			trigger = loadCode(sectionNode, "inventory close", InventoryCloseEvent.class);
+			trigger = loadCode(sectionNode, "inventory close", InventoryCloseWrapper.class);
 		} else {
-			trigger = loadCode(sectionNode, "inventory open", InventoryOpenEvent.class);
+			trigger = loadCode(sectionNode, "inventory open", InventoryOpenWrapper.class);
 		}
 
 		return true;

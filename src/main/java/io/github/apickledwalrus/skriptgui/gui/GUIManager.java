@@ -1,9 +1,8 @@
 package io.github.apickledwalrus.skriptgui.gui;
 
-import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.Player;
+import net.minestom.server.entity.Player;
+import net.minestom.server.inventory.AbstractInventory;
 import org.bukkit.event.Event;
-import org.bukkit.inventory.Inventory;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -18,7 +17,7 @@ public class GUIManager {
 	 * A map for tracking all GUIs based on their Inventory.
 	 * Used mainly during event processing (see {@link io.github.apickledwalrus.skriptgui.gui.events.GUIEvents}).
 	 */
-	private final Map<Inventory, GUI> guis = new HashMap<>();
+	private final Map<AbstractInventory, GUI> guis = new HashMap<>();
 
 	/**
 	 * A map to track the GUI involved in an event.
@@ -40,7 +39,7 @@ public class GUIManager {
 	 * @param gui The GUI to unregister.
 	 */
 	public void unregister(GUI gui) {
-		new ArrayList<>(gui.getInventory().getViewers()).forEach(HumanEntity::closeInventory);
+		new ArrayList<>(gui.getInventory().getViewers()).forEach(Player::closeInventory);
 		gui.clear();
 		guis.remove(gui.getInventory());
 		// Just remove them from the event GUIs list now
@@ -54,7 +53,7 @@ public class GUIManager {
 	 * @param gui The GUI to modify the registration of.
 	 * @param newInventory The new Inventory to associate with the provided GUI.
 	 */
-	public void transferRegistration(GUI gui, Inventory newInventory) {
+	public void transferRegistration(GUI gui, AbstractInventory newInventory) {
 		guis.remove(gui.getInventory());
 		guis.put(newInventory, gui);
 	}
@@ -135,7 +134,7 @@ public class GUIManager {
 	 * @return The GUI with this inventory, or null if a GUI with this inventory doesn't exist.
 	 */
 	@Nullable
-	public GUI getGUI(Inventory inventory) {
+	public GUI getGUI(AbstractInventory inventory) {
 		return guis.get(inventory);
 	}
 

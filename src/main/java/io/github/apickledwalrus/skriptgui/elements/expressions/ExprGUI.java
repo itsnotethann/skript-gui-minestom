@@ -7,7 +7,7 @@ import ch.njol.skript.doc.Since;
 import ch.njol.skript.expressions.base.SimplePropertyExpression;
 import io.github.apickledwalrus.skriptgui.SkriptGUI;
 import io.github.apickledwalrus.skriptgui.gui.GUI;
-import org.bukkit.entity.Player;
+import net.minestom.server.entity.Player;
 import org.eclipse.jdt.annotation.Nullable;
 
 @Name("GUI of Player")

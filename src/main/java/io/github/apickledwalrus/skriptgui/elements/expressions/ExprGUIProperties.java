@@ -12,8 +12,11 @@ import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import io.github.apickledwalrus.skriptgui.SkriptGUI;
 import io.github.apickledwalrus.skriptgui.gui.GUI;
+import net.kyori.adventure.text.Component;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
+
+import static ch.njol.skript.effects.EffOpenInventory.getDefaultTitle;
 
 @Name("GUI Properties")
 @Description("Different properties of a GUI. They can be modified.")
@@ -62,7 +65,7 @@ public class ExprGUIProperties extends SimplePropertyExpression<GUI, Object> {
 		if (mode == ChangeMode.SET || mode == ChangeMode.RESET) {
 			switch (property) {
 				case NAME:
-					return CollectionUtils.array(String.class);
+					return CollectionUtils.array(Component.class);
 				case ROWS:
 					return CollectionUtils.array(Number.class);
 				case SHAPE:
@@ -85,7 +88,7 @@ public class ExprGUIProperties extends SimplePropertyExpression<GUI, Object> {
 				case SET:
 					switch (property) {
 						case NAME:
-							gui.setName((String) delta[0]);
+							gui.setName((Component) delta[0]);
 							break;
 						case ROWS:
 							gui.setSize(((Number) delta[0]).intValue() * 9);
@@ -108,10 +111,10 @@ public class ExprGUIProperties extends SimplePropertyExpression<GUI, Object> {
 				case RESET:
 					switch (property) {
 						case NAME:
-							gui.setName(gui.getInventory().getType().getDefaultTitle());
+							gui.setName(getDefaultTitle(gui.getInventory().getInventoryType()));
 							break;
 						case ROWS:
-							gui.setSize(gui.getInventory().getType().getDefaultSize());
+							gui.setSize(Math.max(gui.getInventory().getInnerSize()/9, 1));
 							break;
 						case SHAPE:
 							gui.resetShape();
@@ -132,7 +135,7 @@ public class ExprGUIProperties extends SimplePropertyExpression<GUI, Object> {
 		switch (property) {
 			case NAME:
 			case SHAPE:
-				return String.class;
+				return Component.class;
 			case ROWS:
 				return Number.class;
 			case LOCK_STATUS:
