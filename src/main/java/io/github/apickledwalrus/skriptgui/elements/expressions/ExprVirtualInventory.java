@@ -27,7 +27,7 @@ import static ch.njol.skript.effects.EffOpenInventory.getDefaultTitle;
 public class ExprVirtualInventory extends SimpleExpression<AbstractInventory>{
 
 	static {
-		Skript.registerExpression(ExprVirtualInventory.class, AbstractInventory.class, ExpressionType.SIMPLE,
+		Skript.registerExpression(ExprVirtualInventory.class, AbstractInventory.class, ExpressionType.COMBINED,
 				"virtual %inventorytype% [inventory] [(named|with (name|title)) %-component%]"
 		);
 	}

@@ -41,7 +41,7 @@ import org.eclipse.jdt.annotation.Nullable;
 @Examples({
 		"create a gui with virtual chest 3 row inventory:",
 		"\tmake gui 10 with water bucket:",
-		"\t\tset the gui item to lava bucket"
+		"\t\tset the gui cursor item to lava bucket"
 })
 @Since("1.0.0")
 public class ExprGUIValues extends SimpleExpression<Object> {
@@ -166,10 +166,10 @@ public class ExprGUIValues extends SimpleExpression<Object> {
 
 	@Override
 	public void change(Event event, Object @Nullable [] delta, ChangeMode mode) {
-		if (delta == null || !(event instanceof InventoryPreClickWrapper)) {
+		if (delta == null || !(event instanceof InventoryPreClickWrapper wrapper)) {
 			return;
 		}
-		((InventoryPreClickWrapper) event).getEvent().getPlayer().getInventory().setCursorItem(((Item) delta[0]).getItem());
+		wrapper.getEvent().getPlayer().getInventory().setCursorItem(((Item) delta[0]).getItem());
 	}
 
 	@Override
