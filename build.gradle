@@ -24,11 +24,9 @@ repositories {
 }
 
 dependencies {
-    implementation group: 'org.eclipse.jdt', name: 'org.eclipse.jdt.annotation', version: '2.2.600'
-    implementation group: 'com.google.code.findbugs', name: 'findbugs', version: '3.0.1'
-    compileOnly "com.github.hapily04.skriptminestom:common:0.1.0"
-    compileOnly "com.github.hapily04.skriptminestom:minestom:0.1.0"
-    compileOnly "net.minestom:minestom:2026.01.08-1.21.11"
+    implementation "org.eclipse.jdt:org.eclipse.jdt.annotation:2.2.600"
+    implementation "com.google.code.findbugs:findbugs:3.0.1"
+    compileOnly "com.github.hapily04:skript-minestom:1.0.0-pre-alpha.2"
     /*implementation group: 'com.destroystokyo.paper', name: 'paper-api', version: '1.16.5-R0.1-SNAPSHOT'
     implementation (group: 'com.github.SkriptLang', name: 'Skript', version: '2.10.2') {
         transitive = false

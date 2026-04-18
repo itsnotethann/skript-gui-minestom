@@ -8,6 +8,7 @@ import ch.njol.skript.doc.Since;
 import ch.njol.skript.expressions.base.SimplePropertyExpression;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
+import ch.njol.skript.util.InventoryType;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import io.github.apickledwalrus.skriptgui.SkriptGUI;
@@ -46,18 +47,14 @@ public class ExprGUIProperties extends SimplePropertyExpression<GUI, Object> {
 	@Override
 	@Nullable
 	public Object convert(GUI gui) {
-		switch (property) {
-			case NAME:
-				return gui.getName();
-			case ROWS:
-				return gui.getInventory().getSize() / 9; // We return rows
-			case SHAPE:
-				return gui.getRawShape();
-			case LOCK_STATUS:
-				return !gui.isRemovable(); // Not removable = locked
-		}
-		return null;
-	}
+        return switch (property) {
+            case NAME -> gui.getName();
+            case ROWS -> gui.getInventory().getSize() / 9; // We return rows
+            case SHAPE -> gui.getRawShape();
+            case LOCK_STATUS -> !gui.isRemovable(); // Not removable = locked
+            default -> null;
+        };
+    }
 
 	@Override
 	@Nullable
@@ -111,7 +108,8 @@ public class ExprGUIProperties extends SimplePropertyExpression<GUI, Object> {
 				case RESET:
 					switch (property) {
 						case NAME:
-							gui.setName(getDefaultTitle(gui.getInventory().getInventoryType()));
+                            //noinspection DataFlowIssue
+                            gui.setName(getDefaultTitle(InventoryType.of(gui.getInventory().getInventoryType())));
 							break;
 						case ROWS:
 							gui.setSize(Math.max(gui.getInventory().getInnerSize()/9, 1));
@@ -132,33 +130,23 @@ public class ExprGUIProperties extends SimplePropertyExpression<GUI, Object> {
 
 	@Override
 	public Class<?> getReturnType() {
-		switch (property) {
-			case NAME:
-			case SHAPE:
-				return Component.class;
-			case ROWS:
-				return Number.class;
-			case LOCK_STATUS:
-				return Boolean.class;
-			default:
-				return Object.class;
-		}
+        return switch (property) {
+            case NAME, SHAPE -> Component.class;
+            case ROWS -> Number.class;
+            case LOCK_STATUS -> Boolean.class;
+            default -> Object.class;
+        };
 	}
 
 	@Override
 	protected String getPropertyName() {
-		switch (property) {
-			case NAME:
-				return "name";
-			case ROWS:
-				return "size";
-			case SHAPE:
-				return "shape";
-			case LOCK_STATUS:
-				return "lock status";
-			default:
-				return "property";
-		}
+        return switch (property) {
+            case NAME -> "name";
+            case ROWS -> "size";
+            case SHAPE -> "shape";
+            case LOCK_STATUS -> "lock status";
+            default -> "property";
+        };
 	}
 
 }

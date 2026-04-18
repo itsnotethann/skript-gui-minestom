@@ -7,13 +7,14 @@ import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
+import ch.njol.skript.lang.Literal;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
+import ch.njol.skript.util.InventoryType;
 import ch.njol.util.Kleenean;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.inventory.AbstractInventory;
 import net.minestom.server.inventory.Inventory;
-import net.minestom.server.inventory.InventoryType;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -45,20 +46,26 @@ public class ExprVirtualInventory extends SimpleExpression<AbstractInventory>{
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean kleenean, ParseResult parseResult) {
 		inventoryType = (Expression<InventoryType>) exprs[0];
 		name = (Expression<Component>) exprs[1];
+
+		if (inventoryType instanceof Literal<InventoryType> literal && literal.getSingle() == InventoryType.PLAYER) {
+			Skript.error("Cannot create virtual inventory of type 'player'.");
+			return false;
+		}
 		return true;
 	}
 
 	@Override
 	protected Inventory[] get(Event e) {
 		InventoryType type = inventoryType.getSingle(e);
-		if (type == null) {
+		if (type == null || type == InventoryType.PLAYER) {
 			return new Inventory[0];
 		}
 
 		Component name = this.name != null ? this.name.getSingle(e) : null;
 		invName = name != null ? name : getDefaultTitle(type);
 
-		Inventory inventory = new Inventory(type, invName);
+        //noinspection DataFlowIssue
+        Inventory inventory = new Inventory(type.getMinestomType(), invName);
 
 		return new Inventory[]{inventory};
 	}

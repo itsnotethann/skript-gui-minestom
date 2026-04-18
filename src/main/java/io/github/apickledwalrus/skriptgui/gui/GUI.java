@@ -5,12 +5,10 @@ import ch.njol.skript.events.wrapper.InventoryOpenWrapper;
 import ch.njol.skript.events.wrapper.InventoryPreClickWrapper;
 import io.github.apickledwalrus.skriptgui.SkriptGUI;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.inventory.InventoryCloseEvent;
 import net.minestom.server.event.inventory.InventoryOpenEvent;
 import net.minestom.server.event.inventory.InventoryPreClickEvent;
-import net.minestom.server.inventory.AbstractInventory;
 import net.minestom.server.inventory.Inventory;
 import net.minestom.server.inventory.InventoryType;
 import net.minestom.server.inventory.PlayerInventory;
@@ -136,7 +134,8 @@ public class GUI {
 	public GUI(Inventory inventory, boolean stealableItems, @Nullable Component name) {
 		this.inventory = inventory;
 		this.removableItems = stealableItems;
-		this.name = name != null ? name : getDefaultTitle(inventory.getInventoryType());
+        //noinspection DataFlowIssue
+        this.name = name != null ? name : getDefaultTitle(ch.njol.skript.util.InventoryType.of(inventory.getInventoryType()));
 		SkriptGUI.getGUIManager().register(this);
 	}
 
@@ -174,7 +173,8 @@ public class GUI {
 	private void changeInventory(int size, @Nullable Component name) {
 		InventoryType type = inventory.getInventoryType();
 		if (name == null) {
-			name = getDefaultTitle(type);
+            //noinspection DataFlowIssue
+            name = getDefaultTitle(ch.njol.skript.util.InventoryType.of(type));
 		} else if (size < 9 ) { // Minimum size
 			size = 9;
 		} else if (size > 54) { // Maximum size
@@ -480,7 +480,7 @@ public class GUI {
 	 */
 	public void setID(@Nullable String id) {
 		this.id = id;
-		if (id == null && inventory.getViewers().size() == 0) {
+		if (id == null && inventory.getViewers().isEmpty()) {
 			SkriptGUI.getGUIManager().unregister(this);
 			clear();
 		}
