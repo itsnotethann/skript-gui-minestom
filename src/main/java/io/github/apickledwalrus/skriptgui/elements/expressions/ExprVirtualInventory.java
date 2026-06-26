@@ -10,6 +10,7 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.Literal;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
+import ch.njol.skript.util.ComponentWrapper;
 import ch.njol.skript.util.InventoryType;
 import ch.njol.util.Kleenean;
 import net.kyori.adventure.text.Component;
@@ -35,7 +36,7 @@ public class ExprVirtualInventory extends SimpleExpression<AbstractInventory>{
 
 	private Expression<InventoryType> inventoryType;
 	@Nullable
-	private Expression<Component> name;
+	private Expression<ComponentWrapper> name;
 
 	// The name of this inventory.
 	@Nullable
@@ -45,7 +46,7 @@ public class ExprVirtualInventory extends SimpleExpression<AbstractInventory>{
 	@SuppressWarnings("unchecked")
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean kleenean, ParseResult parseResult) {
 		inventoryType = (Expression<InventoryType>) exprs[0];
-		name = (Expression<Component>) exprs[1];
+		name = (Expression<ComponentWrapper>) exprs[1];
 
 		if (inventoryType instanceof Literal<InventoryType> literal && literal.getSingle() == InventoryType.PLAYER) {
 			Skript.error("Cannot create virtual inventory of type 'player'.");
@@ -61,7 +62,8 @@ public class ExprVirtualInventory extends SimpleExpression<AbstractInventory>{
 			return new Inventory[0];
 		}
 
-		Component name = this.name != null ? this.name.getSingle(e) : null;
+
+		Component name = ComponentWrapper.getOrElse(this.name, e, null);
 		invName = name != null ? name : getDefaultTitle(type);
 
         //noinspection DataFlowIssue
