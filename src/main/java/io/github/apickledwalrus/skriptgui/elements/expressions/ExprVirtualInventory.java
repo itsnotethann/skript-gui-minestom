@@ -63,8 +63,7 @@ public class ExprVirtualInventory extends SimpleExpression<AbstractInventory>{
 		}
 
 
-		Component name = ComponentWrapper.getOrElse(this.name, e, null);
-		invName = name != null ? name : getDefaultTitle(type);
+		invName = ComponentWrapper.getOrElse(this.name, e, getDefaultTitle(type));
 
         //noinspection DataFlowIssue
         Inventory inventory = new Inventory(type.getMinestomType(), invName);
