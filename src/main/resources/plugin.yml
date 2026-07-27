@@ -2,7 +2,7 @@ name: skript-gui
 main: io.github.apickledwalrus.skriptgui.SkriptGUI
 version: @version@
 api-version: 1.13
-authors: [APickledWalrus, Tuke_Nuke]
-description: Enables the easy creation of advanced and organized GUIs with Skript.
-website: https://github.com/APickledWalrus/skript-gui
-softdepend: [Skript]
+authors: [APickledWalrus, Tuke_Nuke, hapily]
+description: Enables the easy creation of advanced and organized GUIs with skript-minestom.
+website: https://github.com/skript-minestom/skript-gui-minestom
+depend: [Skript]

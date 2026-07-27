@@ -25,11 +25,10 @@ import java.util.List;
 
 @Name("Create / Edit GUI")
 @Description("The base of creating and editing GUIs.")
-@Examples({
-		"create a gui with virtual chest 3 row inventory named \"My GUI\"",
-		"edit gui last gui:",
-		"\tset the gui-inventory-name to \"New GUI Name!\"",
-})
+@Examples("""
+	create a gui with virtual chest 3 row named "My GUI"
+	edit gui last gui:
+		set the name of the edited gui to "New GUI Name!\"""")
 @Since("1.0.0")
 public class SecCreateGUI extends EffectSection {
 
@@ -42,7 +41,6 @@ public class SecCreateGUI extends EffectSection {
 
 	private boolean inception;
 
-	@SuppressWarnings("NotNullFieldNotInitialized")
 	private Expression<AbstractInventory> inv;
 	@Nullable
 	private Expression<String> shape, id;

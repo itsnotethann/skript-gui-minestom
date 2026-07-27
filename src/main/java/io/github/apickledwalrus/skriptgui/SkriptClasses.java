@@ -4,6 +4,7 @@ import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.classes.Parser;
 import ch.njol.skript.lang.ParseContext;
 import ch.njol.skript.registrations.Classes;
+import ch.njol.skript.util.InventoryType;
 import io.github.apickledwalrus.skriptgui.gui.GUI;
 
 public class SkriptClasses {
@@ -24,8 +25,8 @@ public class SkriptClasses {
 
                 @Override
                 public String toString(GUI gui, int flags) {
-                    return gui.getInventory().getInventoryType().name().toLowerCase().replace("_", " ")
-                        + " gui named " + gui.getName()
+                    return Classes.toString(InventoryType.of(gui.getInventory().getInventoryType()))
+                        + " gui named " + Classes.toString(gui.getName())
                         + " and shape " + gui.getRawShape();
                 }
 

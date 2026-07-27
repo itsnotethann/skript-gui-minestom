@@ -1,6 +1,9 @@
 package io.github.apickledwalrus.skriptgui.elements.expressions;
 
 import ch.njol.skript.Skript;
+import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Examples;
+import ch.njol.skript.doc.Name;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
@@ -11,6 +14,9 @@ import io.github.apickledwalrus.skriptgui.gui.GUI;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
+@Name("All GUIs")
+@Description("All of the registered skript-gui GUIs.")
+@Examples("send all guis to player")
 public class ExprGUIs extends SimpleExpression<GUI> {
 
 	static {

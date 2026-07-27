@@ -42,7 +42,6 @@ public class SecGUIOpenClose extends Section {
 		);
 	}
 
-	@SuppressWarnings("NotNullFieldNotInitialized")
 	private Trigger trigger;
 
 	private boolean close;

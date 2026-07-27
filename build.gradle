@@ -17,8 +17,6 @@ java {
 
 repositories {
     mavenCentral()
-   /* maven { url = 'https://repo.skriptlang.org/releases' }
-    maven { url = 'https://repo.papermc.io/repository/maven-public/' }*/
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
     maven { url = "https://maven.hapily.me/snapshots"}
 }
@@ -26,11 +24,7 @@ repositories {
 dependencies {
     implementation "org.eclipse.jdt:org.eclipse.jdt.annotation:2.2.600"
     implementation "com.google.code.findbugs:findbugs:3.0.1"
-    compileOnly "com.github.hapily04:skript-minestom:1.0.0-pre-alpha.3"
-    /*implementation group: 'com.destroystokyo.paper', name: 'paper-api', version: '1.16.5-R0.1-SNAPSHOT'
-    implementation (group: 'com.github.SkriptLang', name: 'Skript', version: '2.10.2') {
-        transitive = false
-    }*/
+    compileOnly "com.github.hapily04:skript-minestom:1.0.0-alpha.1"
 }
 
 processResources {

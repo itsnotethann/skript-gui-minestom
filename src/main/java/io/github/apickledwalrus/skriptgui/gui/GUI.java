@@ -75,8 +75,9 @@ public class GUI {
 			}
 
 			if (onOpen != null) {
-				SkriptGUI.getGUIManager().setGUI(new InventoryOpenWrapper(e), GUI.this);
-				onOpen.accept(new InventoryOpenWrapper(e));
+				InventoryOpenWrapper inventoryOpenWrapper = new InventoryOpenWrapper(e);
+				SkriptGUI.getGUIManager().setGUI(inventoryOpenWrapper, GUI.this);
+				onOpen.accept(inventoryOpenWrapper);
 			}
 		}
 
@@ -87,8 +88,9 @@ public class GUI {
 			}
 
 			if (onClose != null) {
-				SkriptGUI.getGUIManager().setGUI(new InventoryCloseWrapper(e), GUI.this);
-				onClose.accept(new InventoryCloseWrapper(e));
+				InventoryCloseWrapper inventoryCloseWrapper = new InventoryCloseWrapper(e);
+				SkriptGUI.getGUIManager().setGUI(inventoryCloseWrapper, GUI.this);
+				onClose.accept(inventoryCloseWrapper);
 				if (closeCancelled) {
 					Bukkit.getScheduler().scheduleSyncDelayedTask(SkriptGUI.getInstance(), () -> {
 						// Reset behavior (it shouldn't persist)
