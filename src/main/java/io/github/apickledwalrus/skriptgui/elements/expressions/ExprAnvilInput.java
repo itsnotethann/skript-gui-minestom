@@ -58,13 +58,9 @@ public class ExprAnvilInput extends SimpleExpression<String> {
 	@Override
 	protected String @Nullable [] get(Event e) {
 		GUI gui = this.gui.getSingle(e);
-		if (gui == null) {
-			return new String[0];
-		}
+		if (gui == null) return new String[0];
 		Player player = this.player != null ? this.player.getSingle(e) : null;
-		if (this.player != null && player == null) {
-			return new String[0];
-		}
+		if (this.player != null && player == null) return new String[0];
 		String input = gui.getAnvilInput(player);
 		return input != null ? new String[]{input} : new String[0];
 	}

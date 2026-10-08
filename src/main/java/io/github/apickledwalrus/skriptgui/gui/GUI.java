@@ -500,9 +500,7 @@ public class GUI {
 
 	@Nullable
 	public String getAnvilInput(@Nullable Player player) {
-		if (player == null) {
-			return lastAnvilInput;
-		}
+		if (player == null) return lastAnvilInput;
 		return anvilInputs.get(player);
 	}
 
