@@ -69,9 +69,7 @@ public class SecSlotChange extends Section {
 	@Nullable
 	public TriggerItem walk(Event e) {
 		GUI gui = SkriptGUI.getGUIManager().getGUI(e);
-		if (gui == null) {
-			return walk(e, false);
-		}
+		if (gui == null) return walk(e, false);
 
 		Object variables = Variables.copyLocalVariables(e);
 		Consumer<InventoryPreClickWrapper> onChange = event -> {
@@ -87,9 +85,7 @@ public class SecSlotChange extends Section {
 			if (slotData == null) {
 				gui.setItem(converted, null, false, null);
 				slotData = gui.getSlotData(converted);
-				if (slotData == null) {
-					continue;
-				}
+				if (slotData == null) continue;
 			}
 			slotData.setRunOnChange(onChange);
 		}

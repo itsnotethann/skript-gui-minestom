@@ -101,18 +101,12 @@ public class GUIEvents {
 		});
 
 		child.addListener(InventoryPreClickEvent.class, event -> {
-			if (event.isCancelled()) {
-				return;
-			}
+			if (event.isCancelled()) return;
 			Player player = event.getPlayer();
 			AbstractInventory openInventory = player.getOpenInventory();
-			if (openInventory == null) {
-				return;
-			}
+			if (openInventory == null) return;
 			GUI gui = SkriptGUI.getGUIManager().getGUI(openInventory);
-			if (gui == null || !gui.hasChangeListeners()) {
-				return;
-			}
+			if (gui == null || !gui.hasChangeListeners()) return;
 			ItemStack[] before = gui.getInventory().getItemStacks();
 			player.scheduleNextTick(entity -> gui.getEventHandler().onChange(player, before));
 		});

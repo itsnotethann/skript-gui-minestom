@@ -70,19 +70,13 @@ public class GUI {
 
 		@Override
 		public void onChange(Player player, ItemStack[] before) {
-			if (isPaused() || isPaused(player)) {
-				return;
-			}
+			if (isPaused() || isPaused(player)) return;
 
 			int size = Math.min(before.length, inventory.getSize());
 			for (int slot = 0; slot < size; slot++) {
-				if (before[slot].equals(inventory.getItemStack(slot))) {
-					continue;
-				}
+				if (before[slot].equals(inventory.getItemStack(slot))) continue;
 				SlotData slotData = getSlotData(convert(slot));
-				if (slotData == null) {
-					continue;
-				}
+				if (slotData == null) continue;
 				Consumer<InventoryPreClickWrapper> runOnChange = slotData.getRunOnChange();
 				if (runOnChange != null) {
 					InventoryPreClickWrapper wrapper = new InventoryPreClickWrapper(new InventoryPreClickEvent(inventory, player, new Click.Left(slot)));
@@ -519,9 +513,7 @@ public class GUI {
 
 	public boolean hasChangeListeners() {
 		for (SlotData slotData : slots.values()) {
-			if (slotData.getRunOnChange() != null) {
-				return true;
-			}
+			if (slotData.getRunOnChange() != null) return true;
 		}
 		return false;
 	}
